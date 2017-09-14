@@ -47,19 +47,16 @@ namespace TrueSync
 
 		public bool IsDataDirty(int tick)
 		{
-			bool flag = this.controls.ContainsKey(tick);
-			return flag && this.controls[tick].dirty;
+			return controls.ContainsKey(tick) && controls[tick].dirty;
 		}
 
 		public SyncedData GetData(int tick)
 		{
-			bool flag = !this.controls.ContainsKey(tick);
 			SyncedData result;
-			if (flag)
+			if (!controls.ContainsKey(tick))
 			{
-				bool flag2 = this.controls.ContainsKey(tick - 1);
 				SyncedData syncedData;
-				if (flag2)
+				if (controls.ContainsKey(tick - 1))
 				{
 					syncedData = this.controls[tick - 1].clone();
 					syncedData.tick = tick;
@@ -83,15 +80,14 @@ namespace TrueSync
 		public void AddData(SyncedData data)
 		{
 			int tick = data.tick;
-			bool flag = this.controls.ContainsKey(tick);
-			if (flag)
+			if (controls.ContainsKey(tick))
 			{
 				SyncedData.pool.GiveBack(data);
 			}
 			else
 			{
-				this.controls[tick] = data;
-				this.lastTick = tick;
+				controls[tick] = data;
+				lastTick = tick;
 			}
 		}
 
@@ -99,38 +95,36 @@ namespace TrueSync
 		{
 			for (int i = 0; i < data.Count; i++)
 			{
-				this.AddData(data[i]);
+				AddData(data[i]);
 			}
 		}
 
 		public void RemoveData(int refTick)
 		{
-			bool flag = this.controls.ContainsKey(refTick);
-			if (flag)
+			if (controls.ContainsKey(refTick))
 			{
 				SyncedData.pool.GiveBack(this.controls[refTick]);
-				this.controls.Remove(refTick);
+				controls.Remove(refTick);
 			}
 		}
 
 		public void AddDataProjected(int refTick, int window)
 		{
-			SyncedData syncedData = this.GetData(refTick);
+			SyncedData syncedData = GetData(refTick);
 			for (int i = 1; i <= window; i++)
 			{
-				SyncedData data = this.GetData(refTick + i);
+				SyncedData data = GetData(refTick + i);
 				bool fake = data.fake;
 				if (fake)
 				{
 					SyncedData syncedData2 = syncedData.clone();
 					syncedData2.fake = true;
 					syncedData2.tick = refTick + i;
-					bool flag = this.controls.ContainsKey(syncedData2.tick);
-					if (flag)
+					if (controls.ContainsKey(syncedData2.tick))
 					{
-						SyncedData.pool.GiveBack(this.controls[syncedData2.tick]);
+						SyncedData.pool.GiveBack(controls[syncedData2.tick]);
 					}
-					this.controls[syncedData2.tick] = syncedData2;
+					controls[syncedData2.tick] = syncedData2;
 				}
 				else
 				{
@@ -152,12 +146,11 @@ namespace TrueSync
 				bool fake = data2.fake;
 				if (fake)
 				{
-					bool flag = data2.EqualsData(data[i]);
-					if (!flag)
+					if (!data2.EqualsData(data[i]))
 					{
 						data[i].dirty = true;
-						SyncedData.pool.GiveBack(this.controls[data[i].tick]);
-						this.controls[data[i].tick] = data[i];
+						SyncedData.pool.GiveBack(controls[data[i].tick]);
+						controls[data[i].tick] = data[i];
 						break;
 					}
 					data2.fake = false;
@@ -169,15 +162,14 @@ namespace TrueSync
 
 		public bool GetSendDataForDrop(byte fromPlayerId, SyncedData[] sendWindowArray)
 		{
-			bool flag = this.controls.Count == 0;
 			bool result;
-			if (flag)
+			if (controls.Count == 0)
 			{
 				result = false;
 			}
 			else
 			{
-				this.GetDataFromTick(this.lastTick, sendWindowArray);
+				GetDataFromTick(lastTick, sendWindowArray);
 				sendWindowArray[0] = sendWindowArray[0].clone();
 				sendWindowArray[0].dropFromPlayerId = fromPlayerId;
 				sendWindowArray[0].dropPlayer = true;
@@ -188,14 +180,14 @@ namespace TrueSync
 
 		public void GetSendData(int tick, SyncedData[] sendWindowArray)
 		{
-			this.GetDataFromTick(tick, sendWindowArray);
+			GetDataFromTick(tick, sendWindowArray);
 		}
 
 		private void GetDataFromTick(int tick, SyncedData[] sendWindowArray)
 		{
 			for (int i = 0; i < sendWindowArray.Length; i++)
 			{
-				sendWindowArray[i] = this.GetData(tick - i);
+				sendWindowArray[i] = GetData(tick - i);
 			}
 		}
 	}

@@ -13,7 +13,7 @@ namespace TrueSync
 		{
 			get
 			{
-				return this.stack.Count;
+				return stack.Count;
 			}
 		}
 
@@ -24,35 +24,34 @@ namespace TrueSync
 
 		public void ResetResourcePool()
 		{
-			Stack<T[]> obj = this.stack;
+			Stack<T[]> obj = stack;
 			lock (obj)
 			{
-				this.stack.Clear();
+				stack.Clear();
 			}
 		}
 
 		public void GiveBack(T[] obj)
 		{
-			Stack<T[]> obj2 = this.stack;
+			Stack<T[]> obj2 = stack;
 			lock (obj2)
 			{
-				this.stack.Push(obj);
+				stack.Push(obj);
 			}
 		}
 
 		public T[] GetNew()
 		{
-			Stack<T[]> obj = this.stack;
+			Stack<T[]> obj = stack;
 			T[] array;
 			lock (obj)
 			{
-				bool flag = this.stack.Count == 0;
-				if (flag)
+				if (stack.Count == 0)
 				{
 					array = new T[this.arrayLength];
-					this.stack.Push(array);
+					stack.Push(array);
 				}
-				array = this.stack.Pop();
+				array = stack.Pop();
 			}
 			return array;
 		}

@@ -28,8 +28,7 @@ namespace TrueSync
 		{
 			List<byte> list = new List<byte>();
 			list.Add(info.playerId);
-			bool flag = info.checksum != null;
-			if (flag)
+			if (info.checksum != null)
 			{
 				list.AddRange(BitConverter.GetBytes(info.tick));
 				list.AddRange(Encoding.ASCII.GetBytes(info.checksum));
@@ -42,8 +41,7 @@ namespace TrueSync
 			SyncedInfo syncedInfo = new SyncedInfo();
 			int num = 0;
 			syncedInfo.playerId = infoBytes[num++];
-			bool flag = num < infoBytes.Length;
-			if (flag)
+			if (num < infoBytes.Length)
 			{
 				syncedInfo.tick = BitConverter.ToInt32(infoBytes, num);
 				num += 4;

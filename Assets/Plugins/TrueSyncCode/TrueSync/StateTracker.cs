@@ -9,59 +9,55 @@ namespace TrueSync
 	{
 		internal class State
 		{
-			private StateTracker.TrackedInfo trackedInfo;
+			private TrackedInfo trackedInfo;
 
 			private object value;
 
 			private Array _auxReferenceArray;
 
-			public void SetInfo(StateTracker.TrackedInfo trackedInfo)
+			public void SetInfo(TrackedInfo trackedInfo)
 			{
 				this.trackedInfo = trackedInfo;
-				this.SaveValue();
+				SaveValue();
 			}
 
 			public void SaveValue()
 			{
-				object obj = this.trackedInfo.propInfo.GetValue(this.trackedInfo.relatedObj);
-				bool flag = obj != null;
-				if (flag)
+				object obj = trackedInfo.propInfo.GetValue(trackedInfo.relatedObj);
+				if (obj != null)
 				{
 					bool isArray = obj.GetType().IsArray;
 					if (isArray)
 					{
-						bool flag2 = this.value == null;
-						if (flag2)
+						if (value == null)
 						{
-							this.value = Array.CreateInstance(obj.GetType().GetElementType(), ((Array)obj).Length);
-							this._auxReferenceArray = (Array)obj;
+							value = Array.CreateInstance(obj.GetType().GetElementType(), ((Array)obj).Length);
+							_auxReferenceArray = (Array)obj;
 						}
-						Array.Copy(this._auxReferenceArray, (Array)this.value, this._auxReferenceArray.Length);
+						Array.Copy(_auxReferenceArray, (Array)value, _auxReferenceArray.Length);
 					}
 					else
 					{
-						this.value = obj;
+						value = obj;
 					}
 				}
 				else
 				{
-					this.value = null;
+					value = null;
 				}
 			}
 
 			public void RestoreValue()
 			{
-				bool flag = this.trackedInfo.relatedObj != null;
-				if (flag)
+				if (trackedInfo.relatedObj != null)
 				{
-					bool flag2 = this.value is Array;
-					if (flag2)
+					if (value is Array)
 					{
-						Array.Copy((Array)this.value, this._auxReferenceArray, ((Array)this.value).Length);
+						Array.Copy((Array)value, _auxReferenceArray, ((Array)value).Length);
 					}
 					else
 					{
-						this.trackedInfo.propInfo.SetValue(this.trackedInfo.relatedObj, this.value);
+						trackedInfo.propInfo.SetValue(trackedInfo.relatedObj, value);
 					}
 				}
 			}
@@ -78,21 +74,21 @@ namespace TrueSync
 
 		private HashSet<string> trackedInfosAdded = new HashSet<string>();
 
-		private List<StateTracker.TrackedInfo> trackedInfos = new List<StateTracker.TrackedInfo>();
+		private List<TrackedInfo> trackedInfos = new List<TrackedInfo>();
 
-		private GenericBufferWindow<List<StateTracker.State>> states;
+		private GenericBufferWindow<List<State>> states;
 
 		internal static StateTracker instance;
 
 		public static void Init(int rollbackWindow)
 		{
-			StateTracker.instance = new StateTracker();
-			StateTracker.instance.states = new GenericBufferWindow<List<StateTracker.State>>(rollbackWindow);
+			instance = new StateTracker();
+			instance.states = new GenericBufferWindow<List<State>>(rollbackWindow);
 		}
 
 		public static void CleanUp()
 		{
-			StateTracker.instance = null;
+			instance = null;
 		}
 
 		public static void AddTracking(object obj, string path)

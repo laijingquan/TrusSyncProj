@@ -23,54 +23,48 @@ namespace TrueSync
 
 		public void OnPreSyncedUpdate()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourGamePlay;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourGamePlay)
 			{
-				((ITrueSyncBehaviourGamePlay)this.trueSyncBehavior).OnPreSyncedUpdate();
+				((ITrueSyncBehaviourGamePlay)trueSyncBehavior).OnPreSyncedUpdate();
 			}
 		}
 
 		public void OnSyncedInput()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourGamePlay;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourGamePlay)
 			{
-				((ITrueSyncBehaviourGamePlay)this.trueSyncBehavior).OnSyncedInput();
+				((ITrueSyncBehaviourGamePlay)trueSyncBehavior).OnSyncedInput();
 			}
 		}
 
 		public void OnSyncedUpdate()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourGamePlay;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourGamePlay)
 			{
-				((ITrueSyncBehaviourGamePlay)this.trueSyncBehavior).OnSyncedUpdate();
+				((ITrueSyncBehaviourGamePlay)trueSyncBehavior).OnSyncedUpdate();
 			}
 		}
 
 		public void SetGameInfo(TSPlayerInfo localOwner, int numberOfPlayers)
 		{
-			this.trueSyncBehavior.SetGameInfo(localOwner, numberOfPlayers);
+			trueSyncBehavior.SetGameInfo(localOwner, numberOfPlayers);
 		}
 
 		public void OnSyncedStart()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourCallbacks;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourCallbacks)
 			{
-				((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnSyncedStart();
-				bool flag2 = this.localOwner.Id == this.owner.Id;
-				if (flag2)
+				((ITrueSyncBehaviourCallbacks)trueSyncBehavior).OnSyncedStart();
+				if (localOwner.Id == owner.Id)
 				{
-					((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnSyncedStartLocalPlayer();
+					((ITrueSyncBehaviourCallbacks)trueSyncBehavior).OnSyncedStartLocalPlayer();
 				}
 			}
 		}
 
 		public void OnGamePaused()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourCallbacks;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourCallbacks)
 			{
 				((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnGamePaused();
 			}
@@ -78,28 +72,25 @@ namespace TrueSync
 
 		public void OnGameUnPaused()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourCallbacks;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourCallbacks)
 			{
-				((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnGameUnPaused();
+				((ITrueSyncBehaviourCallbacks)trueSyncBehavior).OnGameUnPaused();
 			}
 		}
 
 		public void OnGameEnded()
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourCallbacks;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourCallbacks)
 			{
-				((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnGameEnded();
+				((ITrueSyncBehaviourCallbacks)trueSyncBehavior).OnGameEnded();
 			}
 		}
 
 		public void OnPlayerDisconnection(int playerId)
 		{
-			bool flag = this.trueSyncBehavior is ITrueSyncBehaviourCallbacks;
-			if (flag)
+			if (trueSyncBehavior is ITrueSyncBehaviourCallbacks)
 			{
-				((ITrueSyncBehaviourCallbacks)this.trueSyncBehavior).OnPlayerDisconnection(playerId);
+				((ITrueSyncBehaviourCallbacks)trueSyncBehavior).OnPlayerDisconnection(playerId);
 			}
 		}
 

@@ -10,9 +10,8 @@ namespace TrueSync
 
 		public float average()
 		{
-			bool flag = this.count == 0L;
 			float result;
-			if (flag)
+			if (count == 0L)
 			{
 				result = 0f;
 			}

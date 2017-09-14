@@ -17,12 +17,12 @@ namespace TrueSync
 
 		public static void Init(IPhysicsManagerBase physicsManager)
 		{
-			ChecksumExtractor.worldExtractor = new WorldChecksumExtractor(physicsManager);
+			worldExtractor = new WorldChecksumExtractor(physicsManager);
 		}
 
 		public static string GetEncodedChecksum()
 		{
-			return Utils.GetMd5Sum(ChecksumExtractor.worldExtractor.GetChecksum());
+			return Utils.GetMd5Sum(worldExtractor.GetChecksum());
 		}
 	}
 }

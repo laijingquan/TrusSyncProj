@@ -16,33 +16,32 @@ namespace TrueSync
 
 		public CompoundStats()
 		{
-			this.bufferStats = new GenericBufferWindow<Stats>(10);
-			this.globalStats = new Stats();
-			this.timerAcc = 0f;
+			bufferStats = new GenericBufferWindow<Stats>(10);
+			globalStats = new Stats();
+			timerAcc = 0f;
 		}
 
 		public void UpdateTime(float time)
 		{
-			this.timerAcc += time;
-			bool flag = this.timerAcc >= 2f;
-			if (flag)
+			timerAcc += time;
+			if (timerAcc >= 2f)
 			{
-				this.bufferStats.MoveNext();
-				this.bufferStats.Current().Clear();
-				this.timerAcc = 0f;
+				bufferStats.MoveNext();
+				bufferStats.Current().Clear();
+				timerAcc = 0f;
 			}
 		}
 
 		public void AddValue(string key, long value)
 		{
-			this.bufferStats.Current().AddValue(key, value);
-			this.globalStats.AddValue(key, value);
+			bufferStats.Current().AddValue(key, value);
+			globalStats.AddValue(key, value);
 		}
 
 		public void Increment(string key)
 		{
-			this.bufferStats.Current().Increment(key);
-			this.globalStats.Increment(key);
+			bufferStats.Current().Increment(key);
+			globalStats.Increment(key);
 		}
 	}
 }

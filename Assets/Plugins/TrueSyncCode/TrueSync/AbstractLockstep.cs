@@ -145,9 +145,9 @@ namespace TrueSync
 		{
 			get
 			{
-				bool flag = this._lastSafeTick < 0;
+				//bool flag = this._lastSafeTick < 0;
 				int result;
-				if (flag)
+				if (this._lastSafeTick < 0)
 				{
 					result = -1;
 				}
@@ -163,11 +163,10 @@ namespace TrueSync
 		{
 			set
 			{
-				this.replayMode = value;
-				bool flag = this.replayMode == ReplayMode.RECORD_REPLAY;
-				if (flag)
+				replayMode = value;
+				if (replayMode == ReplayMode.RECORD_REPLAY)
 				{
-					this.replayRecord = new ReplayRecord();
+					replayRecord = new ReplayRecord();
 				}
 			}
 		}
@@ -176,12 +175,11 @@ namespace TrueSync
 		{
 			set
 			{
-				this.replayRecord = value;
-				bool flag = this.replayRecord != null;
-				if (flag)
+				replayRecord = value;
+				if (replayRecord != null)
 				{
-					this.replayMode = ReplayMode.LOAD_REPLAY;
-					this.replayRecord.ApplyRecord(this);
+					replayMode = ReplayMode.LOAD_REPLAY;
+					replayRecord.ApplyRecord(this);
 				}
 			}
 		}
@@ -252,10 +250,10 @@ namespace TrueSync
 		protected virtual void AfterStepUpdate(int syncedDataTick, int referenceTick)
 		{
 			int i = 0;
-			int count = this.activePlayers.Count;
+			int count = activePlayers.Count;
 			while (i < count)
 			{
-				this.activePlayers[i].RemoveData(referenceTick);
+				activePlayers[i].RemoveData(referenceTick);
 				i++;
 			}
 		}
@@ -270,153 +268,135 @@ namespace TrueSync
 
 		private void Run()
 		{
-			bool flag = this.simulationState == AbstractLockstep.SimulationState.NOT_STARTED;
-			if (flag)
+			if (simulationState == SimulationState.NOT_STARTED)
 			{
-				this.simulationState = AbstractLockstep.SimulationState.WAITING_PLAYERS;
+				simulationState = SimulationState.WAITING_PLAYERS;
 			}
 			else
 			{
-				bool flag2 = this.simulationState == AbstractLockstep.SimulationState.WAITING_PLAYERS || this.simulationState == AbstractLockstep.SimulationState.PAUSED;
-				if (flag2)
+				if (simulationState == SimulationState.WAITING_PLAYERS || simulationState == SimulationState.PAUSED)
 				{
-					bool flag3 = this.simulationState == AbstractLockstep.SimulationState.WAITING_PLAYERS;
-					if (flag3)
+					if (simulationState == SimulationState.WAITING_PLAYERS)
 					{
-						this.OnGameStarted();
+						OnGameStarted();
 					}
 					else
 					{
-						this.OnGameUnPaused();
+						OnGameUnPaused();
 					}
-					this.simulationState = AbstractLockstep.SimulationState.RUNNING;
+					simulationState = SimulationState.RUNNING;
 				}
 			}
 		}
 
 		private void Pause()
 		{
-			bool flag = this.simulationState == AbstractLockstep.SimulationState.RUNNING;
-			if (flag)
+			if (simulationState == SimulationState.RUNNING)
 			{
-				this.OnGamePaused();
-				this.simulationState = AbstractLockstep.SimulationState.PAUSED;
+				OnGamePaused();
+				simulationState = SimulationState.PAUSED;
 			}
 		}
 
 		private void End()
 		{
-			bool flag = this.simulationState != AbstractLockstep.SimulationState.ENDED;
-			if (flag)
+			if (simulationState != SimulationState.ENDED)
 			{
-				this.OnGameEnded();
-				bool flag2 = this.replayMode == ReplayMode.RECORD_REPLAY;
-				if (flag2)
+				OnGameEnded();
+				if (replayMode == ReplayMode.RECORD_REPLAY)
 				{
-					ReplayRecord.SaveRecord(this.replayRecord);
+					ReplayRecord.SaveRecord(replayRecord);
 				}
-				this.simulationState = AbstractLockstep.SimulationState.ENDED;
+				simulationState = SimulationState.ENDED;
 			}
 		}
 
 		public void Update()
 		{
-			bool flag = this.simulationState == AbstractLockstep.SimulationState.WAITING_PLAYERS;
-			if (flag)
+			if (simulationState == SimulationState.WAITING_PLAYERS)
 			{
-				this.CheckGameStart();
+				CheckGameStart();
 			}
 			else
 			{
-				bool flag2 = this.simulationState == AbstractLockstep.SimulationState.RUNNING;
-				if (flag2)
+				if (simulationState == SimulationState.RUNNING)
 				{
-					this.compoundStats.UpdateTime(this.deltaTime);
-					bool flag3 = this.communicator != null;
-					if (flag3)
+					compoundStats.UpdateTime(deltaTime);
+					if (communicator != null)
 					{
-						this.compoundStats.AddValue("ping", (long)this.communicator.RoundTripTime());
+						compoundStats.AddValue("ping", communicator.RoundTripTime());
 					}
-					bool flag4 = this.syncWindow == 0;
-					if (flag4)
+
+					if (syncWindow == 0)
 					{
-						this.UpdateData();
+						UpdateData();
 					}
 					int i = 0;
 					int num = this.activePlayers.Count;
 					while (i < num)
 					{
-						bool flag5 = this.CheckDrop(this.activePlayers[i]);
-						if (flag5)
+						if (CheckDrop(this.activePlayers[i]))
 						{
 							i--;
 							num--;
 						}
 						i++;
 					}
-					int syncedDataTick = this.GetSyncedDataTick();
-					bool flag6 = this.CheckGameIsReady() && this.IsStepReady(syncedDataTick);
-					bool flag7 = flag6;
-					if (flag7)
+					int syncedDataTick = GetSyncedDataTick();
+					if (CheckGameIsReady() && this.IsStepReady(syncedDataTick))
 					{
-						this.compoundStats.Increment("simulated_frames");
-						this.UpdateData();
-						this.elapsedPanicTicks = 0;
-						int refTick = this.GetRefTick(syncedDataTick);
-						bool flag8 = refTick > 1 && refTick % 100 == 0;
-						if (flag8)
+						compoundStats.Increment("simulated_frames");
+						UpdateData();
+						elapsedPanicTicks = 0;
+						int refTick = GetRefTick(syncedDataTick);
+						if (refTick > 1 && refTick % 100 == 0)
 						{
-							this.SendInfoChecksum(refTick);
+							SendInfoChecksum(refTick);
 						}
-						this._lastSafeTick = refTick;
-						this.BeforeStepUpdate(syncedDataTick, refTick);
-						List<SyncedData> tickData = this.GetTickData(syncedDataTick);
-						this.ExecutePhysicsStep(tickData, syncedDataTick);
-						bool flag9 = this.replayMode == ReplayMode.RECORD_REPLAY;
-						if (flag9)
+						_lastSafeTick = refTick;
+						BeforeStepUpdate(syncedDataTick, refTick);
+						List<SyncedData> tickData = GetTickData(syncedDataTick);
+						ExecutePhysicsStep(tickData, syncedDataTick);
+						if (replayMode == ReplayMode.RECORD_REPLAY)
 						{
-							this.replayRecord.AddSyncedData(this.GetTickData(refTick));
+							replayRecord.AddSyncedData(GetTickData(refTick));
 						}
-						this.AfterStepUpdate(syncedDataTick, refTick);
-						this.ticks++;
+						AfterStepUpdate(syncedDataTick, refTick);
+						ticks++;
 					}
 					else
 					{
-						bool flag10 = this.ticks >= this.totalWindow;
-						if (flag10)
+						if (ticks >= this.totalWindow)
 						{
-							bool flag11 = this.replayMode == ReplayMode.LOAD_REPLAY;
-							if (flag11)
+							if (replayMode == ReplayMode.LOAD_REPLAY)
 							{
-								this.End();
+								End();
 							}
 							else
 							{
-								this.compoundStats.Increment("missed_frames");
-								this.elapsedPanicTicks++;
-								bool flag12 = this.elapsedPanicTicks > this.panicWindow;
-								if (flag12)
+								compoundStats.Increment("missed_frames");
+								elapsedPanicTicks++;
+								if (elapsedPanicTicks > panicWindow)
 								{
-									this.compoundStats.Increment("panic");
-									bool flag13 = this.compoundStats.globalStats.GetInfo("panic").count >= 5L;
-									if (flag13)
+									compoundStats.Increment("panic");
+									if (compoundStats.globalStats.GetInfo("panic").count >= 5L)
 									{
-										this.End();
+										End();
 									}
 									else
 									{
-										this.elapsedPanicTicks = 0;
-										this.DropLagPlayers();
+										elapsedPanicTicks = 0;
+										DropLagPlayers();
 									}
 								}
 							}
 						}
 						else
 						{
-							this.compoundStats.Increment("simulated_frames");
-							this.physicsManager.UpdateStep();
-							this.UpdateData();
-							this.ticks++;
+							compoundStats.Increment("simulated_frames");
+							physicsManager.UpdateStep();
+							UpdateData();
+							ticks++;
 						}
 					}
 				}
@@ -425,11 +405,10 @@ namespace TrueSync
 
 		private bool CheckGameIsReady()
 		{
-			bool flag = this.GameIsReady != null;
 			bool result;
-			if (flag)
+			if (GameIsReady != null)
 			{
-				Delegate[] invocationList = this.GameIsReady.GetInvocationList();
+				Delegate[] invocationList = GameIsReady.GetInvocationList();
 				for (int i = 0; i < invocationList.Length; i++)
 				{
 					Delegate @delegate = invocationList[i];
@@ -448,24 +427,23 @@ namespace TrueSync
 
 		protected void ExecutePhysicsStep(List<SyncedData> data, int syncedDataTick)
 		{
-			this.ExecuteDelegates(syncedDataTick);
-			this.SyncedArrayToInputArray(data);
-			this.StepUpdate(this.auxPlayersInputData);
-			this.physicsManager.UpdateStep();
+			ExecuteDelegates(syncedDataTick);
+			SyncedArrayToInputArray(data);
+			StepUpdate(auxPlayersInputData);
+			physicsManager.UpdateStep();
 		}
 
 		private void ExecuteDelegates(int syncedDataTick)
 		{
 			syncedDataTick++;
-			bool flag = this.playersDisconnect.ContainsKey(syncedDataTick);
-			if (flag)
+			if (playersDisconnect.ContainsKey(syncedDataTick))
 			{
-				List<byte> list = this.playersDisconnect[syncedDataTick];
+				List<byte> list = playersDisconnect[syncedDataTick];
 				int i = 0;
 				int count = list.Count;
 				while (i < count)
 				{
-					this.OnPlayerDisconnection(list[i]);
+					OnPlayerDisconnection(list[i]);
 					i++;
 				}
 			}
@@ -473,47 +451,46 @@ namespace TrueSync
 
 		internal void UpdateActivePlayers()
 		{
-			this.playersIdsAux.Clear();
+			playersIdsAux.Clear();
 			int i = 0;
-			int count = this.activePlayers.Count;
+			int count = activePlayers.Count;
 			while (i < count)
 			{
-				bool flag = this.localPlayer == null || this.localPlayer.ID != this.activePlayers[i].ID;
+				bool flag = localPlayer == null || localPlayer.ID != activePlayers[i].ID;
 				if (flag)
 				{
-					this.playersIdsAux.Add((int)this.activePlayers[i].ID);
+					playersIdsAux.Add((int)activePlayers[i].ID);
 				}
 				i++;
 			}
-			this.auxActivePlayersIds = this.playersIdsAux.ToArray();
+			auxActivePlayersIds = playersIdsAux.ToArray();
 		}
 
 		private void CheckGameStart()
 		{
-			bool flag = this.replayMode == ReplayMode.LOAD_REPLAY;
-			if (flag)
+			if (replayMode == ReplayMode.LOAD_REPLAY)
 			{
-				this.RunSimulation(false);
+				RunSimulation(false);
 			}
 			else
 			{
-				bool flag2 = true;
+				bool flag = true;
 				int i = 0;
-				int count = this.activePlayers.Count;
+				int count = activePlayers.Count;
 				while (i < count)
 				{
-					flag2 &= this.activePlayers[i].sentSyncedStart;
+					flag &= activePlayers[i].sentSyncedStart;
 					i++;
 				}
-				bool flag3 = flag2;
-				if (flag3)
+
+				if (flag)
 				{
-					this.RunSimulation(false);
-					SyncedData.pool.FillStack(this.activePlayers.Count * (this.syncWindow + this.rollbackWindow));
+					RunSimulation(false);
+					SyncedData.pool.FillStack(activePlayers.Count * (syncWindow + rollbackWindow));
 				}
 				else
 				{
-					this.RaiseEvent(196, SyncedInfo.Encode(new SyncedInfo
+					RaiseEvent(196, SyncedInfo.Encode(new SyncedInfo
 					{
 						playerId = this.localPlayer.ID
 					}));
@@ -523,93 +500,89 @@ namespace TrueSync
 
 		protected void SyncedArrayToInputArray(List<SyncedData> data)
 		{
-			this.auxPlayersInputData.Clear();
+			auxPlayersInputData.Clear();
 			int i = 0;
 			int count = data.Count;
 			while (i < count)
 			{
-				this.auxPlayersInputData.Add(data[i].inputData);
+				auxPlayersInputData.Add(data[i].inputData);
 				i++;
 			}
 		}
 
 		public void PauseSimulation()
 		{
-			this.Pause();
-			this.RaiseEvent(197, new byte[1], true, this.auxActivePlayersIds);
+			Pause();
+			RaiseEvent(197, new byte[1], true, auxActivePlayersIds);
 		}
 
 		public void RunSimulation(bool firstRun)
 		{
-			this.Run();
+			Run();
 			bool flag = !firstRun;
 			if (flag)
 			{
-				this.RaiseEvent(197, new byte[]
+				RaiseEvent(197, new byte[]
 				{
 					1
-				}, true, this.auxActivePlayersIds);
+				}, true, auxActivePlayersIds);
 			}
 		}
 
 		public void EndSimulation()
 		{
-			this.End();
-			this.RaiseEvent(197, new byte[]
+			End();
+			RaiseEvent(197, new byte[]
 			{
 				3
-			}, true, this.auxActivePlayersIds);
+			}, true, auxActivePlayersIds);
 		}
 
 		public void Destroy(IBody rigidBody)
 		{
 			rigidBody.TSDisabled = true;
-			int key = this.GetSimulatedTick(this.GetSyncedDataTick()) + 1;
-			bool flag = !this.bodiesToDestroy.ContainsKey(key);
-			if (flag)
+			int key = GetSimulatedTick(GetSyncedDataTick()) + 1;
+			if (!bodiesToDestroy.ContainsKey(key))
 			{
-				this.bodiesToDestroy[key] = new List<IBody>();
+				bodiesToDestroy[key] = new List<IBody>();
 			}
-			this.bodiesToDestroy[key].Add(rigidBody);
+			bodiesToDestroy[key].Add(rigidBody);
 		}
 
 		protected void CheckSafeRemotion(int refTick)
 		{
-			bool flag = this.bodiesToDestroy.ContainsKey(refTick);
-			if (flag)
+			if (bodiesToDestroy.ContainsKey(refTick))
 			{
-				List<IBody> list = this.bodiesToDestroy[refTick];
+				List<IBody> list = bodiesToDestroy[refTick];
 				foreach (IBody current in list)
 				{
 					bool tSDisabled = current.TSDisabled;
 					if (tSDisabled)
 					{
-						this.physicsManager.RemoveBody(current);
+						physicsManager.RemoveBody(current);
 					}
 				}
-				this.bodiesToDestroy.Remove(refTick);
+				bodiesToDestroy.Remove(refTick);
 			}
-			bool flag2 = this.playersDisconnect.ContainsKey(refTick);
-			if (flag2)
+
+			if (playersDisconnect.ContainsKey(refTick))
 			{
-				this.playersDisconnect.Remove(refTick);
+				playersDisconnect.Remove(refTick);
 			}
 		}
 
 		private void DropLagPlayers()
 		{
 			List<TSPlayer> list = new List<TSPlayer>();
-			int refTick = this.GetRefTick(this.GetSyncedDataTick());
-			bool flag = refTick >= 0;
-			if (flag)
+			int refTick = GetRefTick(GetSyncedDataTick());
+			if (refTick >= 0)
 			{
 				int i = 0;
-				int count = this.activePlayers.Count;
+				int count = activePlayers.Count;
 				while (i < count)
 				{
-					TSPlayer tSPlayer = this.activePlayers[i];
-					bool flag2 = !tSPlayer.IsDataReady(refTick);
-					if (flag2)
+					TSPlayer tSPlayer = activePlayers[i];
+					if (!tSPlayer.IsDataReady(refTick))
 					{
 						tSPlayer.dropCount++;
 						list.Add(tSPlayer);
@@ -622,12 +595,12 @@ namespace TrueSync
 			while (j < count2)
 			{
 				TSPlayer p = list[j];
-				this.CheckDrop(p);
-				bool sendDataForDrop = list[j].GetSendDataForDrop(this.localPlayer.ID, this._syncedDataCacheDrop);
+				CheckDrop(p);
+				bool sendDataForDrop = list[j].GetSendDataForDrop(localPlayer.ID, _syncedDataCacheDrop);
 				if (sendDataForDrop)
 				{
-					this.communicator.OpRaiseEvent(199, SyncedData.Encode(this._syncedDataCacheDrop), true, null);
-					SyncedData.pool.GiveBack(this._syncedDataCacheDrop[0]);
+					communicator.OpRaiseEvent(199, SyncedData.Encode(_syncedDataCacheDrop), true, null);
+					SyncedData.pool.GiveBack(_syncedDataCacheDrop[0]);
 				}
 				j++;
 			}
@@ -635,23 +608,21 @@ namespace TrueSync
 
 		private SyncedData UpdateData()
 		{
-			bool flag = this.replayMode == ReplayMode.LOAD_REPLAY;
 			SyncedData result;
-			if (flag)
+			if (replayMode == ReplayMode.LOAD_REPLAY)
 			{
 				result = null;
 			}
 			else
 			{
 				SyncedData @new = SyncedData.pool.GetNew();
-				@new.Init(this.localPlayer.ID, this.ticks);
-				this.GetLocalData(@new.inputData);
-				this.localPlayer.AddData(@new);
-				bool flag2 = this.communicator != null;
-				if (flag2)
+				@new.Init(localPlayer.ID, ticks);
+				GetLocalData(@new.inputData);
+				localPlayer.AddData(@new);
+				if (communicator != null)
 				{
-					this.localPlayer.GetSendData(this.ticks, this._syncedDataCacheUpdateData);
-					this.communicator.OpRaiseEvent(199, SyncedData.Encode(this._syncedDataCacheUpdateData), true, this.auxActivePlayersIds);
+					localPlayer.GetSendData(ticks, _syncedDataCacheUpdateData);
+					communicator.OpRaiseEvent(199, SyncedData.Encode(_syncedDataCacheUpdateData), true, auxActivePlayersIds);
 				}
 				result = @new;
 			}
@@ -660,20 +631,19 @@ namespace TrueSync
 
 		public InputDataBase GetInputData(int playerId)
 		{
-			return this.players[(byte)playerId].GetData(this.GetSyncedDataTick()).inputData;
+			return players[(byte)playerId].GetData(GetSyncedDataTick()).inputData;
 		}
 
 		private void SendInfoChecksum(int tick)
 		{
-			bool flag = this.replayMode == ReplayMode.LOAD_REPLAY;
-			if (!flag)
+			if (replayMode != ReplayMode.LOAD_REPLAY)
 			{
-				SyncedInfo syncedInfo = this.bufferSyncedInfo.Current();
-				syncedInfo.playerId = this.localPlayer.ID;
+				SyncedInfo syncedInfo = bufferSyncedInfo.Current();
+				syncedInfo.playerId = localPlayer.ID;
 				syncedInfo.tick = tick;
-				syncedInfo.checksum = this.GetChecksumForSyncedInfo();
-				this.bufferSyncedInfo.MoveNext();
-				this.RaiseEvent(198, SyncedInfo.Encode(syncedInfo));
+				syncedInfo.checksum = GetChecksumForSyncedInfo();
+				bufferSyncedInfo.MoveNext();
+				RaiseEvent(198, SyncedInfo.Encode(syncedInfo));
 			}
 		}
 
@@ -684,115 +654,102 @@ namespace TrueSync
 
 		private void RaiseEvent(byte eventCode, object message, bool reliable, int[] toPlayers)
 		{
-			bool flag = this.communicator != null;
-			if (flag)
+			if (communicator != null)
 			{
-				this.communicator.OpRaiseEvent(eventCode, message, reliable, toPlayers);
+				communicator.OpRaiseEvent(eventCode, message, reliable, toPlayers);
 			}
 		}
 
 		private void OnEventDataReceived(byte eventCode, object content)
 		{
-			bool flag = eventCode == 199;
-			if (flag)
-			{
-				byte[] data = content as byte[];
-				List<SyncedData> list = SyncedData.Decode(data);
-				bool flag2 = list.Count > 0;
-				if (flag2)
-				{
-					TSPlayer tSPlayer = this.players[list[0].inputData.ownerID];
-					bool flag3 = !tSPlayer.dropped;
-					if (flag3)
-					{
-						this.OnSyncedDataReceived(tSPlayer, list);
-						bool flag4 = list[0].dropPlayer && tSPlayer.ID != this.localPlayer.ID && !this.players[list[0].dropFromPlayerId].dropped;
-						if (flag4)
-						{
-							tSPlayer.dropCount++;
-						}
-					}
-					else
-					{
-						int i = 0;
-						int count = list.Count;
-						while (i < count)
-						{
-							SyncedData.pool.GiveBack(list[i]);
-							i++;
-						}
-					}
-					SyncedData.poolList.GiveBack(list);
-				}
-			}
-			else
-			{
-				bool flag5 = eventCode == 198;
-				if (flag5)
-				{
-					byte[] infoBytes = content as byte[];
-					this.OnChecksumReceived(SyncedInfo.Decode(infoBytes));
-				}
-				else
-				{
-					bool flag6 = eventCode == 197;
-					if (flag6)
-					{
-						byte[] array = content as byte[];
-						bool flag7 = array.Length != 0;
-						if (flag7)
-						{
-							bool flag8 = array[0] == 0;
-							if (flag8)
-							{
-								this.Pause();
-							}
-							else
-							{
-								bool flag9 = array[0] == 1;
-								if (flag9)
-								{
-									this.Run();
-								}
-								else
-								{
-									bool flag10 = array[0] == 3;
-									if (flag10)
-									{
-										this.End();
-									}
-								}
-							}
-						}
-					}
-					else
-					{
-						bool flag11 = eventCode == 196;
-						if (flag11)
-						{
-							byte[] infoBytes2 = content as byte[];
-							SyncedInfo syncedInfo = SyncedInfo.Decode(infoBytes2);
-							this.players[syncedInfo.playerId].sentSyncedStart = true;
-						}
-					}
-				}
-			}
-		}
+            if (eventCode == 199)
+            {
+                byte[] data = content as byte[];
+                List<SyncedData> list = SyncedData.Decode(data);
+                if (list.Count > 0)
+                {
+                    TSPlayer tSPlayer = players[list[0].inputData.ownerID];
+                    if (!tSPlayer.dropped)
+                    {
+                        OnSyncedDataReceived(tSPlayer, list);
+                        if (list[0].dropPlayer && tSPlayer.ID != localPlayer.ID && !players[list[0].dropFromPlayerId].dropped)
+                        {
+                            tSPlayer.dropCount++;
+                        }
+                    }
+                    else
+                    {
+                        int i = 0;
+                        int count = list.Count;
+                        while (i < count)
+                        {
+                            SyncedData.pool.GiveBack(list[i]);
+                            i++;
+                        }
+                    }
+                    SyncedData.poolList.GiveBack(list);
+                }
+            }
+            else
+            {
+                if (eventCode == 198)
+                {
+                    byte[] infoBytes = content as byte[];
+                    this.OnChecksumReceived(SyncedInfo.Decode(infoBytes));
+                }
+                else
+                {
+                    if (eventCode == 197)
+                    {
+                        byte[] array = content as byte[];
+                        if (array.Length != 0)
+                        {
+                            if (array[0] == 0)
+                            {
+                                Pause();
+                            }
+                            else
+                            {
+                                if (array[0] == 1)
+                                {
+                                    Run();
+                                }
+                                else
+                                {
+                                    if (array[0] == 3)
+                                    {
+                                        End();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (eventCode == 196)
+                        {
+                            byte[] infoBytes2 = content as byte[];
+                            SyncedInfo syncedInfo = SyncedInfo.Decode(infoBytes2);
+                            players[syncedInfo.playerId].sentSyncedStart = true;
+                        }
+                    }
+                }
+            }
+        }
 
 		private void OnChecksumReceived(SyncedInfo syncedInfo)
 		{
 			bool dropped = this.players[syncedInfo.playerId].dropped;
 			if (!dropped)
 			{
-				this.checksumOk = true;
-				SyncedInfo[] buffer = this.bufferSyncedInfo.buffer;
+				checksumOk = true;
+				SyncedInfo[] buffer = bufferSyncedInfo.buffer;
 				for (int i = 0; i < buffer.Length; i++)
 				{
 					SyncedInfo syncedInfo2 = buffer[i];
-					bool flag = syncedInfo2.tick == syncedInfo.tick && syncedInfo2.checksum != syncedInfo.checksum;
-					if (flag)
+					if (syncedInfo2.tick == syncedInfo.tick && syncedInfo2.checksum != syncedInfo.checksum)
 					{
-						this.checksumOk = false;
+						checksumOk = false;
 						break;
 					}
 				}
@@ -801,57 +758,53 @@ namespace TrueSync
 
 		protected List<SyncedData> GetTickData(int tick)
 		{
-			this.auxPlayersSyncedData.Clear();
+			auxPlayersSyncedData.Clear();
 			int i = 0;
-			int count = this.activePlayers.Count;
+			int count = activePlayers.Count;
 			while (i < count)
 			{
-				this.auxPlayersSyncedData.Add(this.activePlayers[i].GetData(tick));
+				auxPlayersSyncedData.Add(activePlayers[i].GetData(tick));
 				i++;
 			}
-			return this.auxPlayersSyncedData;
+			return auxPlayersSyncedData;
 		}
 
 		public void AddPlayer(byte playerId, string playerName, bool isLocal)
 		{
 			TSPlayer tSPlayer = new TSPlayer(playerId, playerName);
-			this.players.Add(tSPlayer.ID, tSPlayer);
-			this.activePlayers.Add(tSPlayer);
+			players.Add(tSPlayer.ID, tSPlayer);
+			activePlayers.Add(tSPlayer);
 			if (isLocal)
 			{
-				this.localPlayer = tSPlayer;
-				this.localPlayer.sentSyncedStart = true;
+				localPlayer = tSPlayer;
+				localPlayer.sentSyncedStart = true;
 			}
-			this.UpdateActivePlayers();
-			bool flag = this.replayMode == ReplayMode.RECORD_REPLAY;
-			if (flag)
+			UpdateActivePlayers();
+			if (replayMode == ReplayMode.RECORD_REPLAY)
 			{
-				this.replayRecord.AddPlayer(tSPlayer);
+				replayRecord.AddPlayer(tSPlayer);
 			}
 		}
 
 		private bool CheckDrop(TSPlayer p)
 		{
-			bool flag = p != this.localPlayer && !p.dropped && p.dropCount > 0;
 			bool result;
-			if (flag)
+			if (p != localPlayer && !p.dropped && p.dropCount > 0)
 			{
-				int num = this.activePlayers.Count - 1;
-				bool flag2 = p.dropCount >= num;
-				if (flag2)
+				int num = activePlayers.Count - 1;
+				if (p.dropCount >= num)
 				{
-					this.compoundStats.globalStats.GetInfo("panic").count = 0L;
+					compoundStats.globalStats.GetInfo("panic").count = 0L;
 					p.dropped = true;
-					this.activePlayers.Remove(p);
-					this.UpdateActivePlayers();
+					activePlayers.Remove(p);
+					UpdateActivePlayers();
 					Debug.Log("Player dropped (stopped sending input)");
-					int key = this.GetSyncedDataTick() + 1;
-					bool flag3 = !this.playersDisconnect.ContainsKey(key);
-					if (flag3)
+					int key = GetSyncedDataTick() + 1;
+					if (!playersDisconnect.ContainsKey(key))
 					{
-						this.playersDisconnect[key] = new List<byte>();
+						playersDisconnect[key] = new List<byte>();
 					}
-					this.playersDisconnect[key].Add(p.ID);
+					playersDisconnect[key].Add(p.ID);
 					result = true;
 					return result;
 				}

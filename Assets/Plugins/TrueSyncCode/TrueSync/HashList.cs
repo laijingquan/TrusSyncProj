@@ -36,26 +36,24 @@ namespace TrueSync
 
 		public void Add(T item)
 		{
-			bool flag = this.Count == 0;
-			if (flag)
+			if (Count == 0)
 			{
-				this.collection.Add(item);
+				collection.Add(item);
 			}
 			else
 			{
 				int i = 0;
-				int num = this.collection.Count - 1;
+				int num = collection.Count - 1;
 				while (i <= num)
 				{
 					int num2 = (i + num) / 2;
-					int num3 = this.comparer.Compare(this.collection[num2], item);
-					bool flag2 = num3 == 0;
-					if (flag2)
+					int num3 = comparer.Compare(this.collection[num2], item);
+					if (num3 == 0)
 					{
 						return;
 					}
 					bool flag3 = num3 < 0;
-					if (flag3)
+					if (num3 < 0)
 					{
 						i = num2 + 1;
 					}

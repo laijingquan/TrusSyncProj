@@ -36,12 +36,11 @@ namespace TrueSync
 
 		public static void SaveRecord(ReplayRecord replay)
 		{
-			bool flag = ReplayRecord.ReplayRecordSave == null;
-			if (!flag)
+			if (ReplayRecordSave != null)
 			{
 				try
 				{
-					ReplayRecord.ReplayRecordSave(ReplayRecord.ToReplayBytes(replay), replay.players.Count);
+					ReplayRecordSave(ReplayRecord.ToReplayBytes(replay), replay.players.Count);
 				}
 				catch (Exception)
 				{
@@ -54,7 +53,7 @@ namespace TrueSync
 			ReplayRecord result = null;
 			try
 			{
-				result = ReplayRecord.FromReplayBytes(replayContent);
+				result = FromReplayBytes(replayContent);
 			}
 			catch (Exception)
 			{
@@ -118,8 +117,7 @@ namespace TrueSync
 		{
 			foreach (KeyValuePair<byte, TSPlayer> current in this.players)
 			{
-				bool flag = lockStep.localPlayer == null;
-				if (flag)
+				if (lockStep.localPlayer == null)
 				{
 					lockStep.localPlayer = current.Value;
 				}

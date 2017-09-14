@@ -5,16 +5,14 @@ public static class TrueSyncExtensionsCore
 {
 	public static object GetValue(this MemberInfo memberInfo, object obj)
 	{
-		bool flag = memberInfo is PropertyInfo;
 		object result;
-		if (flag)
+		if (memberInfo is PropertyInfo)
 		{
 			result = ((PropertyInfo)memberInfo).GetValue(obj, null);
 		}
 		else
 		{
-			bool flag2 = memberInfo is FieldInfo;
-			if (flag2)
+			if (memberInfo is FieldInfo)
 			{
 				result = ((FieldInfo)memberInfo).GetValue(obj);
 			}
@@ -28,15 +26,13 @@ public static class TrueSyncExtensionsCore
 
 	public static void SetValue(this MemberInfo memberInfo, object obj, object value)
 	{
-		bool flag = memberInfo is PropertyInfo;
-		if (flag)
+		if (memberInfo is PropertyInfo)
 		{
 			((PropertyInfo)memberInfo).SetValue(obj, value, null);
 		}
 		else
 		{
-			bool flag2 = memberInfo is FieldInfo;
-			if (flag2)
+			if (memberInfo is FieldInfo)
 			{
 				((FieldInfo)memberInfo).SetValue(obj, value);
 			}

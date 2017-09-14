@@ -54,14 +54,12 @@ namespace TrueSync
 				ResourcePool.resourcePoolReferences.Add(this);
 				this.fresh = false;
 			}
-			bool flag = this.stack.Count == 0;
-			if (flag)
+			if (stack.Count == 0)
 			{
 				this.stack.Push(this.NewInstance());
 			}
 			T t = this.stack.Pop();
-			bool flag2 = t is ResourcePoolItem;
-			if (flag2)
+			if (t is ResourcePoolItem)
 			{
 				((ResourcePoolItem)((object)t)).CleanUp();
 			}

@@ -101,8 +101,8 @@ namespace TrueSync
 			this.DrawGlobalInfo(ref num, "rollback");
 			this.DrawGlobalInfo(ref num, "missed_frames");
 			this.DrawGlobalInfo(ref num, "players");
-			bool flag = this.lockstep.compoundStats.globalStats.GetInfo("panic").count > 0L;
-			if (flag)
+
+			if (lockstep.compoundStats.globalStats.GetInfo("panic").count > 0L)
 			{
 				this.DrawGlobalInfo(ref num, "panic");
 			}
@@ -140,9 +140,8 @@ namespace TrueSync
 		{
 			GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 			GUI.contentColor = (this.statsUI[statsKey].color);
-			bool flag = statsKey == "players";
 			CountInfo info;
-			if (flag)
+			if (statsKey == "players")
 			{
 				this.playerStatsInfo.count = (long)this.lockstep.ActivePlayers.Count;
 				info = this.playerStatsInfo;
@@ -159,8 +158,7 @@ namespace TrueSync
 
 		private void DrawOfflineMode(ref int posBaseY)
 		{
-			bool flag = this.lockstep.communicator != null;
-			if (!flag)
+			if (lockstep.communicator == null)
 			{
 				GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 				GUI.contentColor = (this.lockstep.checksumOk ? TrueSyncStats.COLOR_GREEN : Color.red);

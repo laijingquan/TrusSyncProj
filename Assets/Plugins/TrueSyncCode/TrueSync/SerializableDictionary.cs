@@ -27,8 +27,7 @@ namespace TrueSync
 		public void OnAfterDeserialize()
 		{
 			base.Clear();
-			bool flag = this.keys.Count != this.values.Count;
-			if (flag)
+			if (keys.Count != this.values.Count)
 			{
 				throw new Exception(string.Format("there are {0} keys and {1} values after deserialization. Make sure that both key and value types are serializable.", new object[0]));
 			}

@@ -43,10 +43,10 @@ namespace TrueSync
 
 		public void GetEncodedHeader(List<byte> bytes)
 		{
-			Utils.GetBytes(this.tick, bytes);
-			bytes.Add(this.inputData.ownerID);
-			bytes.Add(this.dropFromPlayerId);
-			bytes.Add((byte)(this.dropPlayer ? 1 : 0));
+			Utils.GetBytes(tick, bytes);
+			bytes.Add(inputData.ownerID);
+			bytes.Add(dropFromPlayerId);
+			bytes.Add((byte)(dropPlayer ? 1 : 0));
 		}
 
 		public void GetEncodedActions(List<byte> bytes)
@@ -56,7 +56,7 @@ namespace TrueSync
 
 		public static List<SyncedData> Decode(byte[] data)
 		{
-			List<SyncedData> @new = SyncedData.poolList.GetNew();
+			List<SyncedData> @new = poolList.GetNew();
 			@new.Clear();
 			int i = 0;
 			int num = BitConverter.ToInt32(data, i);
@@ -84,8 +84,7 @@ namespace TrueSync
 		public static byte[] Encode(SyncedData[] syncedData)
 		{
 			SyncedData.bytesToEncode.Clear();
-			bool flag = syncedData.Length != 0;
-			if (flag)
+			if (syncedData.Length != 0)
 			{
 				syncedData[0].GetEncodedHeader(SyncedData.bytesToEncode);
 				for (int i = 0; i < syncedData.Length; i++)

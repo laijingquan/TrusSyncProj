@@ -16,31 +16,29 @@ namespace TrueSync
 
 		public void Increment(string key)
 		{
-			bool flag = !this.counts.ContainsKey(key);
-			if (flag)
+			if (!counts.ContainsKey(key))
 			{
-				this.counts[key] = new CountInfo();
+				counts[key] = new CountInfo();
 			}
-			this.counts[key].count += 1L;
+			counts[key].count += 1L;
 		}
 
 		public void AddValue(string key, long value)
 		{
-			this.Increment(key);
-			this.counts[key].sum += value;
+			Increment(key);
+			counts[key].sum += value;
 		}
 
 		public CountInfo GetInfo(string key)
 		{
-			bool flag = this.counts.ContainsKey(key);
 			CountInfo result;
-			if (flag)
+			if (counts.ContainsKey(key))
 			{
-				result = this.counts[key];
+				result = counts[key];
 			}
 			else
 			{
-				result = Stats.emptyInfo;
+				result = emptyInfo;
 			}
 			return result;
 		}
