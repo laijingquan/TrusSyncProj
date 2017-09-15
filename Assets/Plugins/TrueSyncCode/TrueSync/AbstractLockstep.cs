@@ -456,14 +456,15 @@ namespace TrueSync
 			int count = activePlayers.Count;
 			while (i < count)
 			{
-				bool flag = localPlayer == null || localPlayer.ID != activePlayers[i].ID;
-				if (flag)
+				//bool flag = localPlayer == null || localPlayer.ID != activePlayers[i].ID;
+                //过滤了本地玩家,那么playersIdsAus存的都是除本地玩家之外的所有玩家
+				if (localPlayer == null || localPlayer.ID != activePlayers[i].ID)
 				{
-					playersIdsAux.Add((int)activePlayers[i].ID);
+					playersIdsAux.Add((int)activePlayers[i].ID);//List
 				}
 				i++;
 			}
-			auxActivePlayersIds = playersIdsAux.ToArray();
+			auxActivePlayersIds = playersIdsAux.ToArray();//转成int[]
 		}
 
 		private void CheckGameStart()
@@ -519,8 +520,9 @@ namespace TrueSync
 		public void RunSimulation(bool firstRun)
 		{
 			Run();
-			bool flag = !firstRun;
-			if (flag)
+			//bool flag = !firstRun;
+            //firstRun=true的时候 不给其他玩家发送消息,auxActivePlayersIds存的都是除了本地玩家之外的所有玩家id
+			if (!firstRun)
 			{
 				RaiseEvent(197, new byte[]
 				{
