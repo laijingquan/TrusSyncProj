@@ -313,6 +313,7 @@ namespace TrueSync
 
 		public void Update()
 		{
+            //当本地玩家已经处于等待其他玩家的状态,那么久应该去检测其他玩家是否已经准备好了
 			if (simulationState == SimulationState.WAITING_PLAYERS)
 			{
 				CheckGameStart();
@@ -475,6 +476,7 @@ namespace TrueSync
 			}
 			else
 			{
+                //检测所有玩家是否已经准备好了
 				bool flag = true;
 				int i = 0;
 				int count = activePlayers.Count;
@@ -484,14 +486,17 @@ namespace TrueSync
 					i++;
 				}
 
+
+                //所有玩家已经准备好了
 				if (flag)
 				{
 					RunSimulation(false);
 					SyncedData.pool.FillStack(activePlayers.Count * (syncWindow + rollbackWindow));
 				}
+                //其他玩家还没有准备好,发送196事件
 				else
 				{
-					RaiseEvent(196, SyncedInfo.Encode(new SyncedInfo
+					RaiseEvent(SYNCED_GAME_START_CODE, SyncedInfo.Encode(new SyncedInfo
 					{
 						playerId = this.localPlayer.ID
 					}));
@@ -514,7 +519,7 @@ namespace TrueSync
 		public void PauseSimulation()
 		{
 			Pause();
-			RaiseEvent(197, new byte[1], true, auxActivePlayersIds);
+			RaiseEvent(SIMULATION_CODE, new byte[1], true, auxActivePlayersIds);
 		}
 
 		public void RunSimulation(bool firstRun)
@@ -524,7 +529,7 @@ namespace TrueSync
             //firstRun=true的时候 不给其他玩家发送消息,auxActivePlayersIds存的都是除了本地玩家之外的所有玩家id
 			if (!firstRun)
 			{
-				RaiseEvent(197, new byte[]
+				RaiseEvent(SIMULATION_CODE, new byte[]
 				{
 					1
 				}, true, auxActivePlayersIds);
@@ -534,7 +539,7 @@ namespace TrueSync
 		public void EndSimulation()
 		{
 			End();
-			RaiseEvent(197, new byte[]
+			RaiseEvent(SIMULATION_CODE, new byte[]
 			{
 				3
 			}, true, auxActivePlayersIds);
@@ -601,7 +606,7 @@ namespace TrueSync
 				bool sendDataForDrop = list[j].GetSendDataForDrop(localPlayer.ID, _syncedDataCacheDrop);
 				if (sendDataForDrop)
 				{
-					communicator.OpRaiseEvent(199, SyncedData.Encode(_syncedDataCacheDrop), true, null);
+					communicator.OpRaiseEvent(SEND_CODE, SyncedData.Encode(_syncedDataCacheDrop), true, null);
 					SyncedData.pool.GiveBack(_syncedDataCacheDrop[0]);
 				}
 				j++;
@@ -624,7 +629,7 @@ namespace TrueSync
 				if (communicator != null)
 				{
 					localPlayer.GetSendData(ticks, _syncedDataCacheUpdateData);
-					communicator.OpRaiseEvent(199, SyncedData.Encode(_syncedDataCacheUpdateData), true, auxActivePlayersIds);
+					communicator.OpRaiseEvent(SEND_CODE, SyncedData.Encode(_syncedDataCacheUpdateData), true, auxActivePlayersIds);
 				}
 				result = @new;
 			}
@@ -645,7 +650,7 @@ namespace TrueSync
 				syncedInfo.tick = tick;
 				syncedInfo.checksum = GetChecksumForSyncedInfo();
 				bufferSyncedInfo.MoveNext();
-				RaiseEvent(198, SyncedInfo.Encode(syncedInfo));
+				RaiseEvent(CHECKSUM_CODE, SyncedInfo.Encode(syncedInfo));
 			}
 		}
 
@@ -664,7 +669,7 @@ namespace TrueSync
 
 		private void OnEventDataReceived(byte eventCode, object content)
 		{
-            if (eventCode == 199)
+            if (eventCode == SEND_CODE)
             {
                 byte[] data = content as byte[];
                 List<SyncedData> list = SyncedData.Decode(data);
@@ -694,14 +699,14 @@ namespace TrueSync
             }
             else
             {
-                if (eventCode == 198)
+                if (eventCode == CHECKSUM_CODE)
                 {
                     byte[] infoBytes = content as byte[];
                     this.OnChecksumReceived(SyncedInfo.Decode(infoBytes));
                 }
                 else
                 {
-                    if (eventCode == 197)
+                    if (eventCode == SIMULATION_CODE)
                     {
                         byte[] array = content as byte[];
                         if (array.Length != 0)
@@ -728,7 +733,7 @@ namespace TrueSync
                     }
                     else
                     {
-                        if (eventCode == 196)
+                        if (eventCode == SYNCED_GAME_START_CODE)
                         {
                             byte[] infoBytes2 = content as byte[];
                             SyncedInfo syncedInfo = SyncedInfo.Decode(infoBytes2);
