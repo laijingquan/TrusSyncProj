@@ -35,8 +35,14 @@ namespace TrueSync
 
 		private const int SYNCED_INFO_BUFFER_WINDOW = 3;
 
+        /// <summary>
+        /// 游戏中所有玩家List
+        /// </summary>
 		internal Dictionary<byte, TSPlayer> players;
 
+        /// <summary>
+        /// 游戏中所有玩家Dict
+        /// </summary>
 		internal List<TSPlayer> activePlayers;
 
 		internal List<SyncedData> auxPlayersSyncedData;
@@ -245,11 +251,13 @@ namespace TrueSync
 
 		protected virtual void BeforeStepUpdate(int syncedDataTick, int referenceTick)
 		{
+            Debug.Log("BeforeStepUpdate");
 		}
 
 		protected virtual void AfterStepUpdate(int syncedDataTick, int referenceTick)
 		{
-			int i = 0;
+            Debug.Log("AfterStepUpdate");
+            int i = 0;
 			int count = activePlayers.Count;
 			while (i < count)
 			{
@@ -268,7 +276,8 @@ namespace TrueSync
 
 		private void Run()
 		{
-			if (simulationState == SimulationState.NOT_STARTED)
+            Debug.Log("Run");
+            if (simulationState == SimulationState.NOT_STARTED)
 			{
 				simulationState = SimulationState.WAITING_PLAYERS;
 			}
@@ -291,7 +300,8 @@ namespace TrueSync
 
 		private void Pause()
 		{
-			if (simulationState == SimulationState.RUNNING)
+            Debug.Log("Pause");
+            if (simulationState == SimulationState.RUNNING)
 			{
 				OnGamePaused();
 				simulationState = SimulationState.PAUSED;
@@ -300,7 +310,8 @@ namespace TrueSync
 
 		private void End()
 		{
-			if (simulationState != SimulationState.ENDED)
+            Debug.Log("End");
+            if (simulationState != SimulationState.ENDED)
 			{
 				OnGameEnded();
 				if (replayMode == ReplayMode.RECORD_REPLAY)
@@ -406,7 +417,8 @@ namespace TrueSync
 
 		private bool CheckGameIsReady()
 		{
-			bool result;
+            Debug.Log("CheckGameIsReady");
+            bool result;
 			if (GameIsReady != null)
 			{
 				Delegate[] invocationList = GameIsReady.GetInvocationList();
@@ -428,7 +440,8 @@ namespace TrueSync
 
 		protected void ExecutePhysicsStep(List<SyncedData> data, int syncedDataTick)
 		{
-			ExecuteDelegates(syncedDataTick);
+            //Debug.Log("ExecutePhysicsStep");
+            ExecuteDelegates(syncedDataTick);
 			SyncedArrayToInputArray(data);
 			StepUpdate(auxPlayersInputData);
 			physicsManager.UpdateStep();
@@ -436,7 +449,8 @@ namespace TrueSync
 
 		private void ExecuteDelegates(int syncedDataTick)
 		{
-			syncedDataTick++;
+            Debug.Log("ExecuteDelegates");
+            syncedDataTick++;
 			if (playersDisconnect.ContainsKey(syncedDataTick))
 			{
 				List<byte> list = playersDisconnect[syncedDataTick];
@@ -452,7 +466,8 @@ namespace TrueSync
 
 		internal void UpdateActivePlayers()
 		{
-			playersIdsAux.Clear();
+            Debug.Log("UpdateActivePlayers");
+            playersIdsAux.Clear();
 			int i = 0;
 			int count = activePlayers.Count;
 			while (i < count)
@@ -470,7 +485,8 @@ namespace TrueSync
 
 		private void CheckGameStart()
 		{
-			if (replayMode == ReplayMode.LOAD_REPLAY)
+            Debug.Log("CheckGameStart");
+            if (replayMode == ReplayMode.LOAD_REPLAY)
 			{
 				RunSimulation(false);
 			}
@@ -506,7 +522,8 @@ namespace TrueSync
 
 		protected void SyncedArrayToInputArray(List<SyncedData> data)
 		{
-			auxPlayersInputData.Clear();
+            Debug.Log("SyncedArrayToInputArray");
+            auxPlayersInputData.Clear();
 			int i = 0;
 			int count = data.Count;
 			while (i < count)
@@ -518,13 +535,15 @@ namespace TrueSync
 
 		public void PauseSimulation()
 		{
-			Pause();
+            Debug.Log("PauseSimulation");
+            Pause();
 			RaiseEvent(SIMULATION_CODE, new byte[1], true, auxActivePlayersIds);
 		}
 
 		public void RunSimulation(bool firstRun)
 		{
-			Run();
+            Debug.LogFormat("RunSimulation bool is {0}",firstRun);
+            Run();
 			//bool flag = !firstRun;
             //firstRun=true的时候 不给其他玩家发送消息,auxActivePlayersIds存的都是除了本地玩家之外的所有玩家id
 			if (!firstRun)
@@ -538,7 +557,8 @@ namespace TrueSync
 
 		public void EndSimulation()
 		{
-			End();
+            Debug.Log("EndSimulation");
+            End();
 			RaiseEvent(SIMULATION_CODE, new byte[]
 			{
 				3
@@ -547,7 +567,8 @@ namespace TrueSync
 
 		public void Destroy(IBody rigidBody)
 		{
-			rigidBody.TSDisabled = true;
+            Debug.Log("Destroy");
+            rigidBody.TSDisabled = true;
 			int key = GetSimulatedTick(GetSyncedDataTick()) + 1;
 			if (!bodiesToDestroy.ContainsKey(key))
 			{
@@ -558,7 +579,8 @@ namespace TrueSync
 
 		protected void CheckSafeRemotion(int refTick)
 		{
-			if (bodiesToDestroy.ContainsKey(refTick))
+            Debug.Log("CheckSafeRemotion");
+            if (bodiesToDestroy.ContainsKey(refTick))
 			{
 				List<IBody> list = bodiesToDestroy[refTick];
 				foreach (IBody current in list)
@@ -578,9 +600,13 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// Lag:落后， 延迟
+        /// </summary>
 		private void DropLagPlayers()
 		{
-			List<TSPlayer> list = new List<TSPlayer>();
+            Debug.Log("DropLagPlayers");
+            List<TSPlayer> list = new List<TSPlayer>();
 			int refTick = GetRefTick(GetSyncedDataTick());
 			if (refTick >= 0)
 			{
@@ -615,7 +641,8 @@ namespace TrueSync
 
 		private SyncedData UpdateData()
 		{
-			SyncedData result;
+            Debug.Log("UpdateData");
+            SyncedData result;
 			if (replayMode == ReplayMode.LOAD_REPLAY)
 			{
 				result = null;
@@ -638,12 +665,14 @@ namespace TrueSync
 
 		public InputDataBase GetInputData(int playerId)
 		{
-			return players[(byte)playerId].GetData(GetSyncedDataTick()).inputData;
+            Debug.Log("GetInputData");
+            return players[(byte)playerId].GetData(GetSyncedDataTick()).inputData;
 		}
 
 		private void SendInfoChecksum(int tick)
 		{
-			if (replayMode != ReplayMode.LOAD_REPLAY)
+            Debug.Log("SendInfoChecksum");
+            if (replayMode != ReplayMode.LOAD_REPLAY)
 			{
 				SyncedInfo syncedInfo = bufferSyncedInfo.Current();
 				syncedInfo.playerId = localPlayer.ID;
@@ -669,6 +698,7 @@ namespace TrueSync
 
 		private void OnEventDataReceived(byte eventCode, object content)
 		{
+            Debug.LogFormat("OnEventDataReceived eventCode is {0}",eventCode);
             if (eventCode == SEND_CODE)
             {
                 byte[] data = content as byte[];
@@ -746,6 +776,7 @@ namespace TrueSync
 
 		private void OnChecksumReceived(SyncedInfo syncedInfo)
 		{
+            Debug.Log("OnChecksumReceived");
 			bool dropped = this.players[syncedInfo.playerId].dropped;
 			if (!dropped)
 			{
@@ -765,7 +796,8 @@ namespace TrueSync
 
 		protected List<SyncedData> GetTickData(int tick)
 		{
-			auxPlayersSyncedData.Clear();
+            Debug.Log("GetTickData");
+            auxPlayersSyncedData.Clear();
 			int i = 0;
 			int count = activePlayers.Count;
 			while (i < count)
@@ -778,7 +810,8 @@ namespace TrueSync
 
 		public void AddPlayer(byte playerId, string playerName, bool isLocal)
 		{
-			TSPlayer tSPlayer = new TSPlayer(playerId, playerName);
+            Debug.Log("AddPlayer");
+            TSPlayer tSPlayer = new TSPlayer(playerId, playerName);
 			players.Add(tSPlayer.ID, tSPlayer);
 			activePlayers.Add(tSPlayer);
 			if (isLocal)
@@ -793,12 +826,19 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// 检查是否有掉线玩家
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		private bool CheckDrop(TSPlayer p)
 		{
-			bool result;
+            Debug.Log("CheckDrop");
+            bool result;
 			if (p != localPlayer && !p.dropped && p.dropCount > 0)
 			{
 				int num = activePlayers.Count - 1;
+                //如果dropCount>=玩家数量,那么就认为该玩家掉线了,
 				if (p.dropCount >= num)
 				{
 					compoundStats.globalStats.GetInfo("panic").count = 0L;

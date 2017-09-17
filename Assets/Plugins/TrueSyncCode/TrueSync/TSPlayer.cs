@@ -39,20 +39,34 @@ namespace TrueSync
 			this.dropped = false;
 			this.controls = new SerializableDictionaryIntSyncedData();
 		}
-
+        /// <summary>
+        /// 判断是否有数据,并且不是伪造的
+        /// </summary>
+        /// <param name="tick"></param>
+        /// <returns></returns>
 		public bool IsDataReady(int tick)
 		{
 			return this.controls.ContainsKey(tick) && !this.controls[tick].fake;
 		}
-
-		public bool IsDataDirty(int tick)
+        /// <summary>
+        /// 对于default lookstep来说，只需判断controls是否有数据
+        /// </summary>
+        /// <param name="tick"></param>
+        /// <returns></returns>
+        public bool IsDataDirty(int tick)
 		{
 			return controls.ContainsKey(tick) && controls[tick].dirty;
 		}
 
+        /// <summary>
+        /// 获取同步数据SyncedData
+        /// </summary>
+        /// <param name="tick"></param>
+        /// <returns></returns>
 		public SyncedData GetData(int tick)
 		{
 			SyncedData result;
+            //若当前tick没有数据,那么就伪造
 			if (!controls.ContainsKey(tick))
 			{
 				SyncedData syncedData;
@@ -66,10 +80,11 @@ namespace TrueSync
 					syncedData = SyncedData.pool.GetNew();
 					syncedData.Init(this.ID, tick);
 				}
-				syncedData.fake = true;
+				syncedData.fake = true;//////////////////////////////////fake
 				this.controls[tick] = syncedData;
 				result = syncedData;
 			}
+            //有数据直接返回
 			else
 			{
 				result = this.controls[tick];
@@ -77,13 +92,19 @@ namespace TrueSync
 			return result;
 		}
 
+        /// <summary>
+        /// 添加同步数据SyncedData
+        /// </summary>
+        /// <param name="data"></param>
 		public void AddData(SyncedData data)
 		{
 			int tick = data.tick;
+            //如果controls里有数据，那么就添加到堆栈
 			if (controls.ContainsKey(tick))
 			{
 				SyncedData.pool.GiveBack(data);
 			}
+            //没有就添加到controls里
 			else
 			{
 				controls[tick] = data;
@@ -99,15 +120,25 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="refTick"></param>
 		public void RemoveData(int refTick)
 		{
 			if (controls.ContainsKey(refTick))
 			{
+                //这也压进堆栈
 				SyncedData.pool.GiveBack(this.controls[refTick]);
 				controls.Remove(refTick);
 			}
 		}
-
+        
+        /// <summary>
+        /// rollback使用 暂时忽略
+        /// </summary>
+        /// <param name="refTick"></param>
+        /// <param name="window"></param>
 		public void AddDataProjected(int refTick, int window)
 		{
 			SyncedData syncedData = GetData(refTick);
@@ -137,7 +168,10 @@ namespace TrueSync
 				}
 			}
 		}
-
+        /// <summary>
+        /// rollback使用 暂时忽略
+        /// </summary>
+        /// <param name="data"></param>
 		public void AddDataRollback(List<SyncedData> data)
 		{
 			for (int i = 0; i < data.Count; i++)

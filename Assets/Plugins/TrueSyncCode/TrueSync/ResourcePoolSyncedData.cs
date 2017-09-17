@@ -2,6 +2,9 @@ using System;
 
 namespace TrueSync
 {
+    /// <summary>
+    /// ÓµÓÐStack<SyncedData>
+    /// </summary>
 	internal class ResourcePoolSyncedData : ResourcePool<SyncedData>
 	{
 		protected override SyncedData NewInstance()

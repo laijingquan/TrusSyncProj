@@ -2,6 +2,10 @@ using System;
 
 namespace TrueSync
 {
+    /// <summary>
+    /// rollback才使用 暂时忽略
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
 	public class GenericBufferWindow<T>
 	{
 		public delegate T NewInstance();

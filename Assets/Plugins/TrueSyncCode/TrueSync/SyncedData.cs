@@ -14,9 +14,15 @@ namespace TrueSync
 
 		public int tick;
 
+        /// <summary>
+        /// 默认为false,表示伪造的syncedData?
+        /// </summary>
 		[NonSerialized]
 		public bool fake;
 
+        /// <summary>
+        /// 用于rollback，默认为false
+        /// </summary>
 		[NonSerialized]
 		public bool dirty;
 

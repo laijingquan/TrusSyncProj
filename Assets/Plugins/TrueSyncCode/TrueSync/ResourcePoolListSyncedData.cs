@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace TrueSync
 {
-	internal class ResourcePoolListSyncedData : ResourcePool<List<SyncedData>>
+    /// <summary>
+    /// ÓµÓÐStack<List<SyncedData>>
+    /// </summary>
+    internal class ResourcePoolListSyncedData : ResourcePool<List<SyncedData>>
 	{
 		protected override List<SyncedData> NewInstance()
 		{

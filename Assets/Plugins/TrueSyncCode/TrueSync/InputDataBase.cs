@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace TrueSync
 {
+    /// <summary>
+    /// ±»InputData¼Ì³Ð
+    /// </summary>
 	[Serializable]
 	public abstract class InputDataBase : ResourcePoolItem
 	{
