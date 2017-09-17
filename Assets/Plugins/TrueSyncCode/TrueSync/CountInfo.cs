@@ -24,7 +24,7 @@ namespace TrueSync
 
 		public string averageFormatted()
 		{
-			return this.average().ToString("F2");
+			return this.average().ToString("F2");//ToString("F2")固定输出小数点后两位
 		}
 	}
 }

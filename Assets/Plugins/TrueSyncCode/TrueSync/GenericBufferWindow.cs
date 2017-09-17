@@ -3,17 +3,28 @@ using System;
 namespace TrueSync
 {
     /// <summary>
-    /// rollback才使用 暂时忽略
+    /// 就是一个buffer数组的操作类
     /// </summary>
     /// <typeparam name="T"></typeparam>
 	public class GenericBufferWindow<T>
 	{
+        /// <summary>
+        /// 初始化buffer的委托
+        /// </summary>
+        /// <returns></returns>
 		public delegate T NewInstance();
 
+        /// <summary>
+        /// 数组
+        /// </summary>
 		public T[] buffer;
-
+        /// <summary>
+        /// buffer大小
+        /// </summary>
 		public int size;
-
+        /// <summary>
+        /// 当前下标
+        /// </summary>
 		public int currentIndex;
 
 		public GenericBufferWindow(int size)
@@ -38,6 +49,10 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// 重新分配数组容量
+        /// </summary>
+        /// <param name="newSize"></param>
 		public void Resize(int newSize)
 		{
 			if (newSize != size)

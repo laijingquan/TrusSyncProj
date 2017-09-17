@@ -345,10 +345,13 @@ namespace TrueSync
 					}
 					int i = 0;
 					int num = this.activePlayers.Count;
+                    //对每个玩家进行检测掉线
 					while (i < num)
 					{
+                        //是否掉线
 						if (CheckDrop(this.activePlayers[i]))
 						{
+                            //如果是掉线,那么该玩家会从activePlayers列表中删除,为了能够正确的检测其他玩家,必须i--,num--
 							i--;
 							num--;
 						}
@@ -702,13 +705,16 @@ namespace TrueSync
             if (eventCode == SEND_CODE)
             {
                 byte[] data = content as byte[];
-                List<SyncedData> list = SyncedData.Decode(data);
+                List<SyncedData> list = SyncedData.Decode(data);//只有list[0]是携带玩家ownerID数据,剩余的list都是该玩家的数据
                 if (list.Count > 0)
                 {
                     TSPlayer tSPlayer = players[list[0].inputData.ownerID];
                     if (!tSPlayer.dropped)
                     {
-                        OnSyncedDataReceived(tSPlayer, list);
+                        OnSyncedDataReceived(tSPlayer, list);//调用TSPlayer.addData添加数据
+                        //满足三个条件,dropCount才可以增加
+                        //网络数据的dropPlayer必须为true,网络过来的玩家不是本地玩家，提取网络数据中的dropFromPlayerId，查找players,其对应的dropped为false
+                        //这里有dropPlayer dropped dropFromPlayerId 需要理解区分
                         if (list[0].dropPlayer && tSPlayer.ID != localPlayer.ID && !players[list[0].dropFromPlayerId].dropped)
                         {
                             tSPlayer.dropCount++;
@@ -846,7 +852,7 @@ namespace TrueSync
 					activePlayers.Remove(p);
 					UpdateActivePlayers();
 					Debug.Log("Player dropped (stopped sending input)");
-					int key = GetSyncedDataTick() + 1;
+					int key = GetSyncedDataTick() + 1;//下一帧为掉线玩家
 					if (!playersDisconnect.ContainsKey(key))
 					{
 						playersDisconnect[key] = new List<byte>();

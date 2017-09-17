@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace TrueSync
 {
+    /// <summary>
+    /// ×´Ì¬Àà
+    /// </summary>
 	public class Stats
 	{
 		private Dictionary<string, CountInfo> counts = new Dictionary<string, CountInfo>();

@@ -26,8 +26,9 @@ namespace TrueSync
 		[NonSerialized]
 		public bool dirty;
 
-		[NonSerialized]
-		public bool dropPlayer;//回退玩家？
+        //掉线玩家标志？
+        [NonSerialized]
+		public bool dropPlayer;
 
 		[NonSerialized]
 		public byte dropFromPlayerId;
