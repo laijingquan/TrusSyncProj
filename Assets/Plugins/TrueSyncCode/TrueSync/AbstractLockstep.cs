@@ -72,11 +72,20 @@ namespace TrueSync
 		public TrueSyncIsReady GameIsReady;
 
 		protected int ticks;
-
+        /// <summary>
+        /// maximum amount of missed frames/ticks before a remote player is removed from simulation due to being unresponsive(not sending input values anymore)
+        /// 就是超过panicWindow还没有收到远程玩家的input那么久将之移除（他太卡了）
+        /// </summary>
 		private int panicWindow;
 
         /// <summary>
         /// this is the size of the input queue;就是缓存输入数据的窗口大小
+        /// Lets say a game client has a ping (round trip time) of 60ms to Photon Cloud servers, and we're using the default locked step time of 0.02 (20ms time per frame).
+
+        //In a lockstep game, we need the input queue to compensate that lag from the remote players by adding an equally big latency to local input.
+
+        //This means that the sync window size shall be at least 3, so we add 60ms(3 frames X 20ms per frame) to all input
+        //就是本地的输入等待远程的输入，为了更好的同步
         /// </summary>
 		protected int syncWindow;
 
