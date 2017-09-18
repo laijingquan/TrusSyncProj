@@ -372,9 +372,10 @@ namespace TrueSync
 						i++;
 					}
 					int syncedDataTick = GetSyncedDataTick();
+                    //执行游戏仿真（或者叫响应玩家输入）
 					if (CheckGameIsReady() && this.IsStepReady(syncedDataTick))
 					{
-						compoundStats.Increment("simulated_frames");
+						compoundStats.Increment("simulated_frames");//simulate_frames++;
 						UpdateData();//收集本地输入，通过服务器发送给其他玩家
                         elapsedPanicTicks = 0;
 						int refTick = GetRefTick(syncedDataTick);//对于defaultLookStep,直接返回syncedDataTick
@@ -394,6 +395,7 @@ namespace TrueSync
 						AfterStepUpdate(syncedDataTick, refTick);//从TSPlayer.controls清除该refTick的数据
                         ticks++;
 					}
+                    //不仿真，只收集数据之类的
 					else
 					{
 						if (ticks >= this.totalWindow)
@@ -404,15 +406,17 @@ namespace TrueSync
 							}
 							else
 							{
-								compoundStats.Increment("missed_frames");
+								compoundStats.Increment("missed_frames");//missed_frames++;
 								elapsedPanicTicks++;
 								if (elapsedPanicTicks > panicWindow)
 								{
 									compoundStats.Increment("panic");
+                                    //超过五次出现了落后panicWindow:100没有数据传来 那么游戏结束
 									if (compoundStats.globalStats.GetInfo("panic").count >= 5L)
 									{
 										End();
 									}
+                                    //出现一次没有数据 就要通知其他玩家一次
 									else
 									{
 										elapsedPanicTicks = 0;
@@ -423,7 +427,7 @@ namespace TrueSync
 						}
 						else
 						{
-							compoundStats.Increment("simulated_frames");
+							compoundStats.Increment("simulated_frames");//simulated_frames++;
 							physicsManager.UpdateStep();
 							UpdateData();
 							ticks++;

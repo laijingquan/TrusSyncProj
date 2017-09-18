@@ -116,6 +116,11 @@ namespace TrueSync
 		{
 			for (int i = 0; i < data.Count; i++)
 			{
+                //if(i==0)
+                //{
+                //    int tick = data[i].tick;
+                //    Debug.LogFormat("OnReceive tick {0}", tick);
+                //}
 				AddData(data[i]);
 			}
 		}
