@@ -75,12 +75,17 @@ namespace TrueSync
 
 		private int panicWindow;
 
+        /// <summary>
+        /// this is the size of the input queue;就是缓存输入数据的窗口大小
+        /// </summary>
 		protected int syncWindow;
 
 		private int elapsedPanicTicks;
 
 		private AbstractLockstep.SimulationState simulationState;
-
+        /// <summary>
+        /// this is the maximum amount of frames that TrueSync is allowed to advance the simulation with predicted input values;//允许优先预测玩家输入的窗口大小
+        /// </summary>
 		internal int rollbackWindow;
 
 		internal ICommunicator communicator;
@@ -361,23 +366,24 @@ namespace TrueSync
 					if (CheckGameIsReady() && this.IsStepReady(syncedDataTick))
 					{
 						compoundStats.Increment("simulated_frames");
-						UpdateData();
-						elapsedPanicTicks = 0;
-						int refTick = GetRefTick(syncedDataTick);
-						if (refTick > 1 && refTick % 100 == 0)
+						UpdateData();//收集本地输入，通过服务器发送给其他玩家
+                        elapsedPanicTicks = 0;
+						int refTick = GetRefTick(syncedDataTick);//对于defaultLookStep,直接返回syncedDataTick
+                        //每100tick做一次刚体同步校验
+                        if (refTick > 1 && refTick % 100 == 0)
 						{
 							SendInfoChecksum(refTick);
 						}
 						_lastSafeTick = refTick;
 						BeforeStepUpdate(syncedDataTick, refTick);
-						List<SyncedData> tickData = GetTickData(syncedDataTick);
-						ExecutePhysicsStep(tickData, syncedDataTick);
+						List<SyncedData> tickData = GetTickData(syncedDataTick);//获取所有玩家在该tick下的输入数据
+                        ExecutePhysicsStep(tickData, syncedDataTick);//输入数据影响物理世界的输出(TrueSyncManager.OnStepUpdate|OnSyncedUpdate)
 						if (replayMode == ReplayMode.RECORD_REPLAY)
 						{
 							replayRecord.AddSyncedData(GetTickData(refTick));
 						}
-						AfterStepUpdate(syncedDataTick, refTick);
-						ticks++;
+						AfterStepUpdate(syncedDataTick, refTick);//从TSPlayer.controls清除该refTick的数据
+                        ticks++;
 					}
 					else
 					{
@@ -642,6 +648,10 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// 收集本地输入，通过服务器发送给其他玩家
+        /// </summary>
+        /// <returns></returns>
 		private SyncedData UpdateData()
 		{
             Debug.Log("UpdateData");
@@ -654,12 +664,12 @@ namespace TrueSync
 			{
 				SyncedData @new = SyncedData.pool.GetNew();
 				@new.Init(localPlayer.ID, ticks);
-				GetLocalData(@new.inputData);
-				localPlayer.AddData(@new);
+				GetLocalData(@new.inputData); //调用OnSyncedInput();输入数据给到@new.inputData里面
+                localPlayer.AddData(@new);//数据塞给TSPlayer的controls
 				if (communicator != null)
 				{
-					localPlayer.GetSendData(ticks, _syncedDataCacheUpdateData);
-					communicator.OpRaiseEvent(SEND_CODE, SyncedData.Encode(_syncedDataCacheUpdateData), true, auxActivePlayersIds);
+					localPlayer.GetSendData(ticks, _syncedDataCacheUpdateData);//从TSplayer的controls里取数据
+					communicator.OpRaiseEvent(SEND_CODE, SyncedData.Encode(_syncedDataCacheUpdateData), true, auxActivePlayersIds);//将自己的输入数据发给其他玩家
 				}
 				result = @new;
 			}
@@ -671,7 +681,10 @@ namespace TrueSync
             Debug.Log("GetInputData");
             return players[(byte)playerId].GetData(GetSyncedDataTick()).inputData;
 		}
-
+        /// <summary>
+        /// 对刚体body的位置和旋转数据的一个同步校验
+        /// </summary>
+        /// <param name="tick"></param>
 		private void SendInfoChecksum(int tick)
 		{
             Debug.Log("SendInfoChecksum");
@@ -800,6 +813,11 @@ namespace TrueSync
 			}
 		}
 
+        /// <summary>
+        /// 获取所有玩家在该tick下的输入数据
+        /// </summary>
+        /// <param name="tick"></param>
+        /// <returns></returns>
 		protected List<SyncedData> GetTickData(int tick)
 		{
             Debug.Log("GetTickData");

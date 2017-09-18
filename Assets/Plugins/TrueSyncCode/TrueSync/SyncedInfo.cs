@@ -11,7 +11,7 @@ namespace TrueSync
 		public byte playerId;
 
 		public int tick;
-
+        //对刚体body的位置和旋转数据的一个同步校验
 		public string checksum;
 
 		public SyncedInfo()
