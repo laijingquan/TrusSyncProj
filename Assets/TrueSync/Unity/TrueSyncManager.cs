@@ -339,29 +339,38 @@ namespace TrueSync {
             List<TrueSyncManagedBehaviour> itemsToRemove = new List<TrueSyncManagedBehaviour>();
 
             var behavioursEnum = behaviours.GetEnumerator();
-            while (behavioursEnum.MoveNext()) {
+            while (behavioursEnum.MoveNext())
+            {
                 TrueSyncManagedBehaviour tsmb = behavioursEnum.Current;
 
-                if (!(tsmb.trueSyncBehavior is TrueSyncBehaviour)) {
+                if (!(tsmb.trueSyncBehavior is TrueSyncBehaviour))
+                {
                     continue;
                 }
 
                 TrueSyncBehaviour bh = (TrueSyncBehaviour)tsmb.trueSyncBehavior;
 
-                if (realOwnerId) {
+                if (realOwnerId)
+                {
                     bh.ownerIndex = bh.owner.Id;
-                } else {
+                }
+                else
+                {
                     if (bh.ownerIndex >= 0 && bh.ownerIndex < playersList.Count) {
                         bh.ownerIndex = playersList[bh.ownerIndex].ID;
                     }
                 }
 
-                if (behaviorsByPlayer.ContainsKey((byte)bh.ownerIndex)) {
+                //检查该bh的ownerIndex是否属于玩家,属于玩家那么就从generalBehaviours列表中移除,从而加入到behavioursByPlayer
+                if (behaviorsByPlayer.ContainsKey((byte)bh.ownerIndex))
+                {
                     bh.owner = lockstep.Players[(byte)bh.ownerIndex].playerInfo;
 
                     behaviorsByPlayer[(byte)bh.ownerIndex].Add(tsmb);
                     itemsToRemove.Add(tsmb);
-                } else {
+                }
+                else
+                {
                     bh.ownerIndex = -1;
                 }
 
@@ -372,17 +381,24 @@ namespace TrueSync {
                 tsmb.localOwner = bh.localOwner;
             }
 
-            for (int index = 0, length = itemsToRemove.Count; index < length; index++) {
+            for (int index = 0, length = itemsToRemove.Count; index < length; index++)
+            {
                 generalBehaviours.Remove(itemsToRemove[index]);
             }
         }
 
-        private void CheckQueuedBehaviours() {
-            if (queuedBehaviours.Count > 0) {
+       /// <summary>
+       /// 检查是否有通过SyncedInstantiate函数实例化的逻辑对象
+       /// </summary>
+        private void CheckQueuedBehaviours()
+        {
+            if (queuedBehaviours.Count > 0)
+            {
                 generalBehaviours.AddRange(queuedBehaviours);
                 initGeneralBehaviors(queuedBehaviours, true);
 
-                for (int index = 0, length = queuedBehaviours.Count; index < length; index++) {
+                for (int index = 0, length = queuedBehaviours.Count; index < length; index++)
+                {
                     TrueSyncManagedBehaviour tsmb = queuedBehaviours[index];
 
                     tsmb.SetGameInfo(lockstep.LocalPlayer.playerInfo, lockstep.Players.Count);
@@ -468,19 +484,23 @@ namespace TrueSync {
          * @param rotation Rotation to set in the new GameObject.
          **/
         public static GameObject SyncedInstantiate(GameObject prefab, TSVector position, TSQuaternion rotation) {
-            if (instance != null && instance.lockstep != null) {
+            if (instance != null && instance.lockstep != null)
+            {
                 GameObject go = GameObject.Instantiate(prefab, position.ToVector(), rotation.ToQuaternion()) as GameObject;
 
-                if (ReplayRecord.replayMode != ReplayMode.LOAD_REPLAY) {
+                if (ReplayRecord.replayMode != ReplayMode.LOAD_REPLAY)
+                {
                     AddGameObjectOnSafeMap(go);
                 }
 
                 MonoBehaviour[] monoBehaviours = go.GetComponentsInChildren<MonoBehaviour>();
-                for (int index = 0, length = monoBehaviours.Length; index < length; index++) {
+                for (int index = 0, length = monoBehaviours.Length; index < length; index++)
+                {
                     MonoBehaviour bh = monoBehaviours[index];
 
-                    if (bh is ITrueSyncBehaviour) {
-                        instance.queuedBehaviours.Add(instance.NewManagedBehavior((ITrueSyncBehaviour)bh));
+                    if (bh is ITrueSyncBehaviour)
+                    {
+                        instance.queuedBehaviours.Add(instance.NewManagedBehavior((ITrueSyncBehaviour)bh));//先加入缓存列表,等下一个帧才加入到逻辑列表去
                     }
                 }
 
@@ -504,17 +524,24 @@ namespace TrueSync {
             safeMap[currentTick].Add(go);
         }
 
+        /// <summary>
+        /// gameOjectsSafeMap里面的gameObject都disable和Destroy
+        /// </summary>
         private static void CheckGameObjectsSafeMap() {
             Dictionary<int, List<GameObject>> safeMap = instance.gameOjectsSafeMap;
 
             int currentTick = TrueSyncManager.Ticks + 1;
-            if (safeMap.ContainsKey(currentTick)) {
+            if (safeMap.ContainsKey(currentTick))
+            {
                 List<GameObject> gos = safeMap[currentTick];
-                for (int i = 0, l = gos.Count; i < l; i++) {
+                for (int i = 0, l = gos.Count; i < l; i++)
+                {
                     GameObject go = gos[i];
-                    if (go != null) {
+                    if (go != null)
+                    {
                         Renderer rend = go.GetComponent<Renderer>();
-                        if (rend != null) {
+                        if (rend != null)
+                        {
                             rend.enabled = false;
                         }
 
@@ -742,57 +769,74 @@ namespace TrueSync {
             if (ReplayRecord.replayMode != ReplayMode.LOAD_REPLAY) {
                 CheckGameObjectsSafeMap();
             }
-
+            //传null的租用是,清空TrueSyncInput.currentAllInputsData;TrueSyncInput.currentAllInputsDataMap
             TrueSyncInput.SetAllInputs(null);
 
-            for (int index = 0, length = generalBehaviours.Count; index < length; index++) {
+            //执行场景公共物件的OnPreSyncedUpdate和协程
+            for (int index = 0, length = generalBehaviours.Count; index < length; index++)
+            {
                 TrueSyncManagedBehaviour bh = generalBehaviours[index];
 
-                if (bh != null && !bh.disabled) {
+                if (bh != null && !bh.disabled)
+                {
                     bh.OnPreSyncedUpdate();
                     instance.scheduler.UpdateAllCoroutines();
                 }
             }
 
-            for (int index = 0, length = allInputData.Count; index < length; index++) {
+            //再执行玩家的OnPreSyncedUpdate和协程
+            for (int index = 0, length = allInputData.Count; index < length; index++)
+            {
                 InputDataBase playerInputData = allInputData[index];
 
-                if (behaviorsByPlayer.ContainsKey(playerInputData.ownerID)) {
+                if (behaviorsByPlayer.ContainsKey(playerInputData.ownerID))
+                {
                     List<TrueSyncManagedBehaviour> managedBehavioursByPlayer = behaviorsByPlayer[playerInputData.ownerID];
-                    for (int index2 = 0, length2 = managedBehavioursByPlayer.Count; index2 < length2; index2++) {
+                    for (int index2 = 0, length2 = managedBehavioursByPlayer.Count; index2 < length2; index2++)
+                    {
                         TrueSyncManagedBehaviour bh = managedBehavioursByPlayer[index2];
 
-                        if (bh != null && !bh.disabled) {
+                        if (bh != null && !bh.disabled)
+                        {
                             bh.OnPreSyncedUpdate();
                             instance.scheduler.UpdateAllCoroutines();
                         }
                     }
                 }
             }
-
+            //添加输入
             TrueSyncInput.SetAllInputs(allInputData);
 
             TrueSyncInput.CurrentSimulationData = null;
-            for (int index = 0, length = generalBehaviours.Count; index < length; index++) {
+
+            //执行公共物件的OnSyncedUpdate和协程
+            for (int index = 0, length = generalBehaviours.Count; index < length; index++)
+            {
                 TrueSyncManagedBehaviour bh = generalBehaviours[index];
 
-                if (bh != null && !bh.disabled) {
+                if (bh != null && !bh.disabled)
+                {
                     bh.OnSyncedUpdate();
                     instance.scheduler.UpdateAllCoroutines();
                 }
             }
 
-            for (int index = 0, length = allInputData.Count; index < length; index++) {
+            //再执行玩家的OnSyncedUpdate和协程
+            for (int index = 0, length = allInputData.Count; index < length; index++)
+            {
                 InputDataBase playerInputData = allInputData[index];
 
-                if (behaviorsByPlayer.ContainsKey(playerInputData.ownerID)) {
+                if (behaviorsByPlayer.ContainsKey(playerInputData.ownerID))
+                {
                     TrueSyncInput.CurrentSimulationData = (InputData) playerInputData;
 
                     List<TrueSyncManagedBehaviour> managedBehavioursByPlayer = behaviorsByPlayer[playerInputData.ownerID];
-                    for (int index2 = 0, length2 = managedBehavioursByPlayer.Count; index2 < length2; index2++) {
+                    for (int index2 = 0, length2 = managedBehavioursByPlayer.Count; index2 < length2; index2++)
+                    {
                         TrueSyncManagedBehaviour bh = managedBehavioursByPlayer[index2];
 
-                        if (bh != null && !bh.disabled) {
+                        if (bh != null && !bh.disabled)
+                        {
                             bh.OnSyncedUpdate();
                             instance.scheduler.UpdateAllCoroutines();
                         }

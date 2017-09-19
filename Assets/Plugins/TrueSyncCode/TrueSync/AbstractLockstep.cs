@@ -357,22 +357,22 @@ namespace TrueSync
 					{
 						UpdateData();
 					}
-					int i = 0;
-					int num = this.activePlayers.Count;
+                    int i = 0;
+                    int num = this.activePlayers.Count;
                     //对每个玩家进行检测掉线
-					while (i < num)
-					{
+                    while (i < num)
+                    {
                         //是否掉线
-						if (CheckDrop(this.activePlayers[i]))
-						{
+                        if (CheckDrop(this.activePlayers[i]))
+                        {
                             //如果是掉线,那么该玩家会从activePlayers列表中删除,为了能够正确的检测其他玩家,必须i--,num--
-							i--;
-							num--;
-						}
-						i++;
-					}
-					int syncedDataTick = GetSyncedDataTick();
-                    //执行游戏仿真（或者叫响应玩家输入）
+                            i--;
+                            num--;
+                        }
+                        i++;
+                    }
+                    int syncedDataTick = GetSyncedDataTick();//syncedDataTick指向的是缓存队列的第一个
+                    //执行游戏仿真（或者叫响应玩家输入,或者叫根据逻辑数据渲染）
 					if (CheckGameIsReady() && this.IsStepReady(syncedDataTick))
 					{
 						compoundStats.Increment("simulated_frames");//simulate_frames++;
@@ -386,7 +386,7 @@ namespace TrueSync
 						}
 						_lastSafeTick = refTick;
 						BeforeStepUpdate(syncedDataTick, refTick);
-						List<SyncedData> tickData = GetTickData(syncedDataTick);//获取所有玩家在该tick下的输入数据
+						List<SyncedData> tickData = GetTickData(syncedDataTick);//获取所有玩家在该syncedDataTick下的输入数据
                         ExecutePhysicsStep(tickData, syncedDataTick);//输入数据影响物理世界的输出(TrueSyncManager.OnStepUpdate|OnSyncedUpdate)
 						if (replayMode == ReplayMode.RECORD_REPLAY)
 						{
@@ -408,22 +408,22 @@ namespace TrueSync
 							{
 								compoundStats.Increment("missed_frames");//missed_frames++;
 								elapsedPanicTicks++;
-								if (elapsedPanicTicks > panicWindow)
-								{
-									compoundStats.Increment("panic");
+                                if (elapsedPanicTicks > panicWindow)
+                                {
+                                    compoundStats.Increment("panic");
                                     //超过五次出现了落后panicWindow:100没有数据传来 那么游戏结束
-									if (compoundStats.globalStats.GetInfo("panic").count >= 5L)
-									{
-										End();
-									}
+                                    if (compoundStats.globalStats.GetInfo("panic").count >= 5L)
+                                    {
+                                        End();
+                                    }
                                     //出现一次没有数据 就要通知其他玩家一次
-									else
-									{
-										elapsedPanicTicks = 0;
-										DropLagPlayers();
-									}
-								}
-							}
+                                    else
+                                    {
+                                        elapsedPanicTicks = 0;
+                                        DropLagPlayers();
+                                    }
+                                }
+                            }
 						}
 						else
 						{
@@ -464,8 +464,8 @@ namespace TrueSync
 		{
             //Debug.Log("ExecutePhysicsStep");
             ExecuteDelegates(syncedDataTick);
-			SyncedArrayToInputArray(data);
-			StepUpdate(auxPlayersInputData);
+			SyncedArrayToInputArray(data);//data塞到auxPlayersInputData
+            StepUpdate(auxPlayersInputData);//TrueSyncManager.OnStepUpdate
 			physicsManager.UpdateStep();
 		}
 

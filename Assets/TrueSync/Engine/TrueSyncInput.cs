@@ -16,7 +16,7 @@ namespace TrueSync {
 
         /**
         * @brief {@link InputData} from the local player to be used in OnSyncedInput callback.
-        **/
+        **/       
         private static InputData currentInputData;
 
         /**
