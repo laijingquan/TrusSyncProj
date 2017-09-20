@@ -229,6 +229,8 @@ namespace TrueSync {
 
             TrueSyncConfig activeConfig = ActiveConfig;
 
+            //帧同步逻辑的回调都交由TrueSyncManagedBehaviour执行
+            //例如：AbstractLockstep.OnGameStarted->TrueSyncManager.OnGameStarted->TrueSyncManagedBehaviour.OnGameStarted()(这是个staic method，之后遍历每一个TrueSyncManagedBehaviour实例的OnSyncedStart)
             lockstep = AbstractLockstep.NewInstance(
                 lockedTimeStep.AsFloat(),
                 communicator,
